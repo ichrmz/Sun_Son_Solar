@@ -21,12 +21,6 @@ SET time_zone = "+00:00";
 -- Database: `sunsonsolar`
 --
 
--- --------------------------------------------------------
-
---
--- Table structure for table `customers`
---
-
 CREATE TABLE `customers` (
   `customer_id` int(11) NOT NULL,
   `firstname` varchar(100) NOT NULL,
@@ -41,11 +35,6 @@ CREATE TABLE `customers` (
   `password` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `employees`
---
 
 CREATE TABLE `employees` (
   `customer_id` int(11) NOT NULL,
@@ -62,11 +51,6 @@ CREATE TABLE `employees` (
   `password` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `products`
---
 
 CREATE TABLE `products` (
   `product_id` int(11) NOT NULL,
@@ -76,11 +60,6 @@ CREATE TABLE `products` (
   `quantity` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `users`
---
 
 CREATE TABLE `users` (
   `user_id` int(11) NOT NULL,
@@ -89,41 +68,19 @@ CREATE TABLE `users` (
   `role` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Indexes for dumped tables
---
 
---
--- Indexes for table `customers`
---
 ALTER TABLE `customers`
   ADD PRIMARY KEY (`customer_id`);
 
---
--- Indexes for table `employees`
---
 ALTER TABLE `employees`
   ADD PRIMARY KEY (`customer_id`);
 
---
--- Indexes for table `products`
---
 ALTER TABLE `products`
   ADD PRIMARY KEY (`product_id`);
 
---
--- Indexes for table `users`
---
 ALTER TABLE `users`
   ADD PRIMARY KEY (`user_id`);
 
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `products`
---
 ALTER TABLE `products`
   MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
