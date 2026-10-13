@@ -1,0 +1,27 @@
+# Secrets and local settings
+.env
+
+# Dependencies
+vendor/
+
+# Runtime files
+writable/cache/*
+!writable/cache/index.html
+!writable/cache/.htaccess
+writable/logs/*
+!writable/logs/index.html
+!writable/logs/.htaccess
+writable/session/*
+!writable/session/index.html
+!writable/session/.htaccess
+writable/uploads/*
+!writable/uploads/index.html
+!writable/uploads/.htaccess
+writable/debugbar/*
+!writable/debugbar/.gitkeep
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
