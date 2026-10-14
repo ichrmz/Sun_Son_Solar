@@ -7,43 +7,6 @@ CREATE DATABASE IF NOT EXISTS `sunsonsolar`
 USE `sunsonsolar`;
 
 
-CREATE TABLE `users` (
-  `user_id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(30) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `role` enum('customer','employee','admin') NOT NULL DEFAULT 'customer',
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `failed_logins` tinyint(3) NOT NULL DEFAULT 0,
-  `locked_until` datetime DEFAULT NULL,
-  `created_by` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`user_id`),
-  UNIQUE KEY `uq_users_username` (`username`),
-  CONSTRAINT `fk_users_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-
-CREATE TABLE `user_tokens` (
-  `token_id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
-  `purpose` enum('verify_email','reset_password') NOT NULL,
-  `token_hash` varchar(255) NOT NULL,
-  `expires_at` datetime NOT NULL,
-  `used_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`token_id`),
-  CONSTRAINT `fk_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-
-CREATE TABLE `user_preferences` (
-  `user_id` int(11) NOT NULL,
-  `want_reminders` tinyint(1) NOT NULL DEFAULT 1,
-  `want_promotions` tinyint(1) NOT NULL DEFAULT 1,
-  `want_system_updates` tinyint(1) NOT NULL DEFAULT 1,
-  PRIMARY KEY (`user_id`),
-  CONSTRAINT `fk_prefs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 CREATE TABLE `departments` (
   `department_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -55,7 +18,6 @@ CREATE TABLE `departments` (
 
 CREATE TABLE `customers` (
   `customer_id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
   `firstname` varchar(100) NOT NULL,
   `middlename` varchar(100) NOT NULL,
   `lastname` varchar(100) NOT NULL,
@@ -64,18 +26,22 @@ CREATE TABLE `customers` (
   `email` varchar(100) NOT NULL,
   `phonenum` varchar(15) NOT NULL,
   `address` varchar(200) NOT NULL,
+  `username` varchar(30) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `failed_logins` tinyint(3) NOT NULL DEFAULT 0,
+  `locked_until` datetime DEFAULT NULL,
   `email_verified` tinyint(1) NOT NULL DEFAULT 0,
   `privacy_consent` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`customer_id`),
   UNIQUE KEY `uq_customers_email` (`email`),
-  UNIQUE KEY `uq_customers_user` (`user_id`),
-  CONSTRAINT `fk_customers_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+  UNIQUE KEY `uq_customers_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
-CREATE TABLE `employees` (
-  `employee_id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
+CREATE TABLE `admins` (
+  `admin_id` int(11) NOT NULL AUTO_INCREMENT,
   `department_id` int(11) NOT NULL,
   `position` varchar(50) DEFAULT NULL,
   `firstname` varchar(100) NOT NULL,
@@ -86,12 +52,68 @@ CREATE TABLE `employees` (
   `email` varchar(100) NOT NULL,
   `phonenum` varchar(15) NOT NULL,
   `address` varchar(200) NOT NULL,
+  `username` varchar(30) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `failed_logins` tinyint(3) NOT NULL DEFAULT 0,
+  `locked_until` datetime DEFAULT NULL,
+  `created_by_admin_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`admin_id`),
+  UNIQUE KEY `uq_admins_email` (`email`),
+  UNIQUE KEY `uq_admins_username` (`username`),
+  CONSTRAINT `fk_admins_dept` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`),
+  CONSTRAINT `fk_admins_creator` FOREIGN KEY (`created_by_admin_id`) REFERENCES `admins` (`admin_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+CREATE TABLE `employees` (
+  `employee_id` int(11) NOT NULL AUTO_INCREMENT,
+  `department_id` int(11) NOT NULL,
+  `position` varchar(50) DEFAULT NULL,
+  `firstname` varchar(100) NOT NULL,
+  `middlename` varchar(100) NOT NULL,
+  `lastname` varchar(100) NOT NULL,
+  `birthdate` date NOT NULL,
+  `gender` enum('Male','Female','Prefer not to say') NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `phonenum` varchar(15) NOT NULL,
+  `address` varchar(200) NOT NULL,
+  `username` varchar(30) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `failed_logins` tinyint(3) NOT NULL DEFAULT 0,
+  `locked_until` datetime DEFAULT NULL,
+  `created_by_type` enum('employee','admin') DEFAULT NULL,   -- HR employee or admin
+  `created_by_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`employee_id`),
   UNIQUE KEY `uq_employees_email` (`email`),
-  UNIQUE KEY `uq_employees_user` (`user_id`),
-  CONSTRAINT `fk_employees_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  UNIQUE KEY `uq_employees_username` (`username`),
   CONSTRAINT `fk_employees_dept` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `customer_preferences` (
+  `customer_id` int(11) NOT NULL,
+  `want_reminders` tinyint(1) NOT NULL DEFAULT 1,
+  `want_promotions` tinyint(1) NOT NULL DEFAULT 1,
+  `want_system_updates` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`customer_id`),
+  CONSTRAINT `fk_prefs_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+CREATE TABLE `account_tokens` (
+  `token_id` int(11) NOT NULL AUTO_INCREMENT,
+  `account_type` enum('customer','employee','admin') NOT NULL,
+  `account_id` int(11) NOT NULL,
+  `purpose` enum('verify_email','reset_password') NOT NULL,
+  `token_hash` varchar(255) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `used_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`token_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 
 CREATE TABLE `products` (
@@ -146,6 +168,7 @@ CREATE TABLE `news` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
+
 CREATE TABLE `bookings` (
   `booking_id` int(11) NOT NULL AUTO_INCREMENT,
   `customer_id` int(11) NOT NULL,
@@ -158,14 +181,14 @@ CREATE TABLE `bookings` (
   `scheduled_end` datetime DEFAULT NULL,
   `status` enum('Pending','Approved','Declined','Completed','Cancelled') NOT NULL DEFAULT 'Pending',
   `decline_reason` varchar(255) DEFAULT NULL,
-  `handled_by` int(11) DEFAULT NULL,
+  `handled_by_type` enum('employee','admin') DEFAULT NULL,  -- dispatcher or admin
+  `handled_by_id` int(11) DEFAULT NULL,
   `notes` varchar(500) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`booking_id`),
   CONSTRAINT `fk_book_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
-  CONSTRAINT `fk_book_service` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`),
-  CONSTRAINT `fk_book_handler` FOREIGN KEY (`handled_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
+  CONSTRAINT `fk_book_service` FOREIGN KEY (`service_id`) REFERENCES `services` (`service_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
@@ -214,14 +237,14 @@ CREATE TABLE `testimonials` (
 
 CREATE TABLE `notifications` (
   `notification_id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
+  `recipient_type` enum('customer','employee','admin') NOT NULL,
+  `recipient_id` int(11) NOT NULL,
   `type` enum('Reminder','Update','Schedule Change','Promotion','System') NOT NULL,
   `title` varchar(100) NOT NULL,
   `message` varchar(500) NOT NULL,
   `is_read` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`notification_id`),
-  CONSTRAINT `fk_notif_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+  PRIMARY KEY (`notification_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
@@ -239,24 +262,25 @@ CREATE TABLE `support_tickets` (
 CREATE TABLE `ticket_messages` (
   `message_id` int(11) NOT NULL AUTO_INCREMENT,
   `ticket_id` int(11) NOT NULL,
-  `sender_user_id` int(11) NOT NULL,
+  `sender_type` enum('customer','employee','admin') NOT NULL,
+  `sender_id` int(11) NOT NULL,
   `message` text NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`message_id`),
-  CONSTRAINT `fk_tmsg_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `support_tickets` (`ticket_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_tmsg_sender` FOREIGN KEY (`sender_user_id`) REFERENCES `users` (`user_id`)
+  CONSTRAINT `fk_tmsg_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `support_tickets` (`ticket_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 
 CREATE TABLE `booking_assignments` (
   `booking_id` int(11) NOT NULL,
   `employee_id` int(11) NOT NULL,
-  `assigned_by` int(11) DEFAULT NULL,
+  `assigned_by_type` enum('employee','admin') DEFAULT NULL,
+  `assigned_by_id` int(11) DEFAULT NULL,
   `assigned_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`booking_id`,`employee_id`),
   CONSTRAINT `fk_assign_booking` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_assign_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`),
-  CONSTRAINT `fk_assign_by` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
+  CONSTRAINT `fk_assign_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
@@ -269,15 +293,16 @@ CREATE TABLE `notification_settings` (
 
 CREATE TABLE `audit_logs` (
   `log_id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) DEFAULT NULL,
+  `actor_type` enum('employee','admin') DEFAULT NULL,
+  `actor_id` int(11) DEFAULT NULL,
   `action` varchar(100) NOT NULL,
   `table_name` varchar(50) DEFAULT NULL,
   `record_id` int(11) DEFAULT NULL,
   `details` varchar(500) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`log_id`),
-  CONSTRAINT `fk_audit_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
+  PRIMARY KEY (`log_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 
 CREATE TABLE `attendance` (
@@ -301,11 +326,11 @@ CREATE TABLE `announcements` (
   `message` text NOT NULL,
   `priority` enum('General','Reminder','Safety','Urgent') NOT NULL DEFAULT 'General',
   `department_id` int(11) DEFAULT NULL,
-  `created_by` int(11) DEFAULT NULL,
+  `posted_by_type` enum('employee','admin') DEFAULT NULL,
+  `posted_by_id` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`announcement_id`),
-  CONSTRAINT `fk_ann_dept` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_ann_user` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
+  CONSTRAINT `fk_ann_dept` FOREIGN KEY (`department_id`) REFERENCES `departments` (`department_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
@@ -342,17 +367,15 @@ SELECT a.attendance_id, a.employee_id,
 FROM `attendance` a
 JOIN `employees` e ON e.employee_id = a.employee_id;
 
-
 CREATE VIEW `v_assigned_jobs` AS
 SELECT ba.employee_id, b.booking_id,
        CONCAT(c.firstname, ' ', c.lastname) AS customer_name,
-       COALESCE(b.site_address, c.address)  AS address,
+       COALESCE(b.site_address, c.address) AS address,
        s.service_name, b.scheduled_start, b.status
 FROM `booking_assignments` ba
-JOIN `bookings` b ON b.booking_id  = ba.booking_id
+JOIN `bookings` b ON b.booking_id = ba.booking_id
 JOIN `customers` c ON c.customer_id = b.customer_id
-JOIN `services` s ON s.service_id  = b.service_id;
-
+JOIN `services` s ON s.service_id = b.service_id;
 
 CREATE VIEW `v_customer_history` AS
 SELECT b.customer_id, b.booking_id, s.service_name, b.scheduled_start,
@@ -375,33 +398,31 @@ INSERT INTO `services` (`service_name`) VALUES
 INSERT INTO `notification_settings` (`type`, `is_enabled`) VALUES
 ('Reminder', 1), ('Update', 1), ('Schedule Change', 1), ('Promotion', 1), ('System', 1);
 
-INSERT INTO `users` (`username`, `password`, `role`, `created_by`) VALUES
-('KittyKat16', '$2b$10$Gyvaul9tOXTQo7Cbko7bAuFUEjUPVoq0qxTSPc5fbkjvoc1CgW566', 'customer', NULL),
-('admin',      '$2b$10$qAP..5dTgyfk27fZx1UnmeVqnJO1Jemsw64RU5IxRYCg5sqpk1J7.', 'admin',    NULL);
-
-INSERT INTO `user_preferences` (`user_id`) VALUES (1), (2);
+INSERT INTO `company_info` (`info_key`, `info_value`) VALUES
+('company_name', 'Sun Son Solar'),
+('tagline', 'Power Your Future with Solar'),
+('description', 'Update: products, services and location.'),
+('benefit_savings', 'Cost savings: Update'),
+('benefit_green', 'Sustainability: Update'),
+('benefit_energy', 'Energy independence: Update'),
+('email', 'katherine.sinagaraw@sunsonsolar.com'),
+('phone', '09291230983'),
+('address', 'Update company address'),
+('facebook_url', 'Update'),
+('instagram_url', 'Update'),
+('legal_notice', 'Update: terms, copyright notice.'),
+('privacy_notice', 'Update: shown at registration.');
 
 INSERT INTO `customers`
-(`user_id`,`firstname`,`middlename`,`lastname`,`birthdate`,`gender`,`email`,`phonenum`,`address`,`email_verified`,`privacy_consent`) VALUES
-(1, 'Katherine', 'Olap', 'Sinagaraw', '1990-07-01', 'Prefer not to say',
- 'katherine.sinagaraw@sunsonsolar.com', '09291230983', 'Update address', 1, 1);
+(`firstname`,`middlename`,`lastname`,`birthdate`,`gender`,`email`,`phonenum`,`address`,`username`,`password`,`email_verified`,`privacy_consent`) VALUES
+('Katherine','Olap','Sinagaraw','1990-07-01','Prefer not to say',
+ 'katherine.sinagaraw@sunsonsolar.com','09291230983','Update address',
+ 'KittyKat16','$2b$10$Gyvaul9tOXTQo7Cbko7bAuFUEjUPVoq0qxTSPc5fbkjvoc1CgW566',1,1);
 
-INSERT INTO `employees`
-(`user_id`,`department_id`,`position`,`firstname`,`middlename`,`lastname`,`birthdate`,`gender`,`email`,`phonenum`,`address`) VALUES
-(2, 2, 'IT Head', 'Sol', 'Sun', 'Solis', '1967-01-08', 'Prefer not to say',
- 'sol.solis@sunsonsolar.com', '09291230983', 'Update address');
+INSERT INTO `admins`
+(`department_id`,`position`,`firstname`,`middlename`,`lastname`,`birthdate`,`gender`,`email`,`phonenum`,`address`,`username`,`password`) VALUES
+(2,'IT Head','Sol','Sun','Solis','1967-01-08','Prefer not to say',
+ 'sol.solis@sunsonsolar.com','09291230983','Update address',
+ 'admin','$2b$10$qAP..5dTgyfk27fZx1UnmeVqnJO1Jemsw64RU5IxRYCg5sqpk1J7.');
 
-INSERT INTO `company_info` (`info_key`, `info_value`) VALUES
-('company_name',    'Sun Son Solar'),
-('tagline',         'Power Your Future with Solar'),
-('description',     'Update: products, services and location.'),
-('benefit_savings', 'Cost savings: Update'),
-('benefit_green',   'Sustainability: Update'),
-('benefit_energy',  'Energy independence: Update'),
-('email',           'katherine.sinagaraw@sunsonsolar.com'),
-('phone',           '09291230983'),
-('address',         'Update company address'),
-('facebook_url',    'Update'),
-('instagram_url',   'Update'),
-('legal_notice',    'Update: terms, copyright notice.'),
-('privacy_notice',  'Update: shown at registration.');
+INSERT INTO `customer_preferences` (`customer_id`) VALUES (1);
