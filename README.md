@@ -44,7 +44,7 @@ CodeIgniter 4 (PHP 8.2+), MySQL (XAMPP), MVC pattern
 
 ## Database
 
-Database name: `sun_son_solar`. Tables: `customers`, `employees`, `admins`, and `migrations`.
+Database name: `sunsonsolar`. Tables: `customers`, `employees`, `admins`, and `migrations`.
 
 ## Notes for the client (to confirm)
 
