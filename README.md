@@ -37,7 +37,7 @@ CodeIgniter 4 (PHP 8.2+), MySQL (XAMPP), MVC pattern
 1. Start **Apache** and **MySQL** in the XAMPP control panel.
 2. Install dependencies: `composer install`
 3. Copy the environment file: `copy env .env` (edit the database username/password if yours differ)
-4. Create the database: `php spark db:create sun_son_solar`
+4. Create the database: `php spark db:create sunsonsolar`
 5. Create the tables: `php spark migrate`
 6. Add the initial users: `php spark db:seed InitialUsersSeeder`
 7. Run the app: `php spark serve` and open http://localhost:8080
