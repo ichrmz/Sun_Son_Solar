@@ -6,12 +6,12 @@ use CodeIgniter\Model;
 
 class AdminModel extends Model
 {
-    protected $table         = 'admins';
+    protected $table         = 'employees';
     protected $primaryKey    = 'id';
     protected $returnType    = 'array';
-    protected $useTimestamps = true;
+    protected $useTimestamps = false;
     protected $allowedFields = [
         'first_name', 'middle_name', 'last_name', 'birthdate', 'gender',
-        'email', 'phone', 'address', 'username', 'password_hash',
+        'email', 'phone', 'address', 'username', 'password', 'is_active', 'created_at', 'department', 'role',
     ];
 }
